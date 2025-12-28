@@ -9,9 +9,6 @@ This repository contains **documentation only** - no production code. It serves 
 ```
 ├── docs/
 │   ├── index.md                      # Documentation index
-│   ├── adr/                          # Architecture Decision Records
-│   ├── architecture/                 # System design documents
-│   └── api/                          # API specifications (OpenAPI)
 ```
 
 ## Quick Start
