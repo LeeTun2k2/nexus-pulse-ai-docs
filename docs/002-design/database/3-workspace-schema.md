@@ -72,10 +72,7 @@ CREATE TABLE workspace_assets (
 
     -- Metadata
     metadata        JSONB,                           -- Asset metadata (e.g., {"width": 1920, "height": 1080, "duration": 30})
-    tags            TEXT[],                          -- Tags for searching/filtering (optional)
-
-    -- Future enhancement (NOT in MVP):
-    -- embedding vector(1536),  -- For semantic search (pgvector) - allows users to search assets by meaning (e.g., "red shirt" finds image even if filename is IMG_123.jpg)
+    tags            TEXT[],                          -- Tags for searching/filtering (manual/AI keyword tags, not vectors)
 
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -95,13 +92,11 @@ CREATE INDEX idx_workspace_assets_deleted_at ON workspace_assets(deleted_at);
 - User upload image → lưu vào `workspace_assets`
 - Khi tạo request, user có thể chọn từ assets đã upload
 - `generation_requests.user_media_urls` có thể reference assets này
-- **Future**: Semantic search via embedding vectors - user can search "red shirt" and find image even if filename is `IMG_123.jpg`
 
 **MVP**:
 
 - **Bắt buộc**: `id`, `user_id`, `asset_url`, `created_at`, `updated_at`.
 - **Optional**: `collection_id` (renamed from project_id), `asset_type`, `file_name`, `file_size`, `mime_type`, `metadata`, `tags`.
-- **Future**: `embedding vector(1536)` for semantic search (pgvector) - NOT in MVP.
 
 ---
 
@@ -141,7 +136,7 @@ erDiagram
         bigint file_size "File size in bytes"
         varchar mime_type "MIME type"
         jsonb metadata "Asset metadata"
-        text_array tags "Tags for searching"
+        text_array tags "Tags for searching (manual/AI keywords)"
         timestamp created_at "Created timestamp"
         timestamp updated_at "Updated timestamp"
         timestamp deleted_at "Soft delete timestamp"
@@ -217,7 +212,6 @@ erDiagram
 1. User upload asset → lưu vào `workspace_assets`
 2. Khi tạo request, user chọn asset từ list
 3. `generation_requests.user_media_urls` chứa URL từ asset
-4. **Future**: User có thể search assets bằng semantic search (e.g., "red shirt" tìm được ảnh dù filename là `IMG_123.jpg`)
 
 ---
 
@@ -259,11 +253,6 @@ erDiagram
 - `workspace_collections.metadata`: Có thể bỏ nếu không cần extra data
 - `workspace_assets.tags`: Có thể bỏ nếu không cần search/filter
 - `workspace_assets.metadata`: Có thể bỏ nếu không cần extra data
-
-### Future Enhancements (NOT in MVP)
-
-- **Semantic Search**: `embedding vector(1536)` trong `workspace_assets` để search assets bằng ngữ nghĩa (pgvector)
-  - Use case: User upload 1000 ảnh sản phẩm, khi prompt "Làm video cho cái áo đỏ", hệ thống tự query vector để lấy đúng ảnh cái áo đỏ
 
 ---
 

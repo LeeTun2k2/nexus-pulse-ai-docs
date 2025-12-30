@@ -283,7 +283,7 @@ CREATE TABLE generation_media (
 
     -- Media metadata
     metadata        JSONB,                      -- Media metadata (e.g., {"resolution": "1080p", "format": "mp4", "fps": 30})
-    blurhash        VARCHAR(255),                -- BlurHash string for instant UI loading (loads placeholder before full image from S3)
+    blurhash        VARCHAR(64) NOT NULL,        -- BlurHash string for instant UI loading (required for smooth UX)
     tiny_preview_base64 TEXT,                    -- Alternative: tiny base64 preview (optional, alternative to blurhash)
 
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -299,8 +299,8 @@ CREATE INDEX idx_generation_media_deleted_at ON generation_media(deleted_at);
 
 **MVP**:
 
-- **Bắt buộc**: `id`, `request_id`, `media_url`, `media_type`, `created_at`, `updated_at`.
-- **Optional**: `job_id`, `file_size`, `duration`, `metadata`, `blurhash`, `tiny_preview_base64`.
+- **Bắt buộc**: `id`, `request_id`, `media_url`, `media_type`, `blurhash`, `created_at`, `updated_at`.
+- **Optional**: `job_id`, `file_size`, `duration`, `metadata`, `tiny_preview_base64`.
 
 ---
 
@@ -402,7 +402,7 @@ erDiagram
         bigint file_size "File size in bytes"
         integer duration "Duration in seconds"
         jsonb metadata "Media metadata"
-        varchar blurhash "BlurHash string for instant UI loading"
+        varchar blurhash "BlurHash string for instant UI loading (required)"
         text tiny_preview_base64 "Tiny base64 preview (optional)"
         timestamp created_at "Created timestamp"
         timestamp updated_at "Updated timestamp"
