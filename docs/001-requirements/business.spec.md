@@ -21,16 +21,29 @@
 - Credit-based pricing.
 
 ## 4. Subscription Packages
+
 Credit-based system (1 credit ≈ 1 second of video or 1 image generation). Similar to Pippit AI (free trial: 400 credits, pro: ~1800 credits/month).
 
-| Package | Price (Monthly) | Price (Annual, ~30% discount) | Credits/Month | Features Included |
-|---------|-----------------|-------------------------------|---------------|-------------------|
-| Free   | $0             | N/A                          | 200          | Basic gen video/image/voice; Low-res export; No analytics. |
-| Starter| $19.99         | $159.99 ($13.33/month)       | 1000         | Full gen features; High-res export; Basic analytics; Integration with Shopify. |
-| Pro    | $49.99         | $399.99 ($33.33/month)       | 5000         | Unlimited gens (fair use); Advanced analytics; Custom avatars; Auto-scheduling posts; Priority support. |
-| Enterprise | Custom (>$99) | Custom                       | Unlimited    | Dedicated API; White-label; Team accounts; Custom integrations. |
+| Package    | Price (Monthly) | Price (Annual, ~30% discount) | Credits/Month | Features Included                                                                                       |
+| ---------- | --------------- | ----------------------------- | ------------- | ------------------------------------------------------------------------------------------------------- |
+| Free       | $0              | N/A                           | 200           | Basic gen video/image/voice; Low-res export; No analytics.                                              |
+| Starter    | $19.99          | $159.99 ($13.33/month)        | 1000          | Full gen features; High-res export; Basic analytics; Integration with Shopify.                          |
+| Pro        | $49.99          | $399.99 ($33.33/month)        | 5000          | Unlimited gens (fair use); Advanced analytics; Custom avatars; Auto-scheduling posts; Priority support. |
 
-## 5. Risks & Assumptions
+## 5. Performance Targets
+
+- **Video Generation**: Full video completion target < 60s
+- **First Frame Preview**: Video generation must return first frame preview within < 5s for instant user feedback
+- **Image Generation**: High-resolution images (up to 4K) with instant BlurHash placeholder loading
+
+## 6. Future Improvements
+
+- **Dynamic Cost Mapping**: Current system uses 1 credit ≈ 1 second. Future enhancement will implement `internal_cost_points` system to dynamically map AI model costs to user credits, allowing for flexible pricing as AI models evolve and costs change.
+
+## 7. Risks & Assumptions
+
 - Assumption: SEA e-commerce market grows 20% annually with high demand for AI content.
 - Risk: Competition from Pippit AI, Canva AI; Mitigation: Focus on low-cost, localized features (Vietnamese language support).
 - Budget: Low cost for 1000 users.
+  TODO: review
+

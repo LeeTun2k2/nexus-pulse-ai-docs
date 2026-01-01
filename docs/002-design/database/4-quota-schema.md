@@ -134,6 +134,9 @@ CREATE TABLE credit_transactions (
     balance_after       INTEGER NOT NULL,             -- Balance after this transaction
     transaction_type    credit_transaction_type_enum NOT NULL,
     
+    -- Idempotency protection
+    idempotency_key     VARCHAR(255) UNIQUE,         -- Prevent double-charging on worker retry (critical for async processing)
+    
     -- Reference to source
     reference_type      VARCHAR(32),                  -- 'request', 'job', 'subscription', 'manual', 'monthly_reset'
     reference_id        BIGINT,                       -- Reference ID (e.g., request_id, job_id, subscription_tier_id)
@@ -150,6 +153,7 @@ CREATE INDEX idx_credit_transactions_type ON credit_transactions(transaction_typ
 CREATE INDEX idx_credit_transactions_reference ON credit_transactions(reference_type, reference_id) WHERE reference_type IS NOT NULL;
 CREATE INDEX idx_credit_transactions_created_at ON credit_transactions(created_at DESC);
 CREATE INDEX idx_credit_transactions_user_created ON credit_transactions(user_id, created_at DESC);
+CREATE UNIQUE INDEX idx_credit_transactions_idempotency_key ON credit_transactions(idempotency_key) WHERE idempotency_key IS NOT NULL;
 ```
 
 **Transaction Types** - Use Cases chi tiết:
@@ -212,7 +216,16 @@ CREATE INDEX idx_credit_transactions_user_created ON credit_transactions(user_id
 
 **MVP**:
 - **Bắt buộc**: `id`, `user_id`, `amount`, `balance_after`, `transaction_type`, `created_at`.
-- **Optional**: `reference_type`, `reference_id`, `description`, `metadata`.
+- **Optional**: `idempotency_key` (highly recommended for async processing), `reference_type`, `reference_id`, `description`, `metadata`.
+
+**Idempotency Key Usage**:
+- Worker generates unique idempotency_key (e.g., `job_{job_id}_{timestamp}`) when deducting credits
+- If worker crashes and retries, same idempotency_key prevents double-charging
+- Critical for async processing where retries are common
+
+**Future Enhancement (NOT in MVP)**:
+- Database Trigger/Stored Procedure để đảm bảo tính toàn vẹn balance (ACID)
+- Current MVP: Application-level calculation với idempotency_key protection
 
 ---
 
@@ -257,6 +270,7 @@ erDiagram
         integer amount "Credit amount (positive=added, negative=used)"
         integer balance_after "Balance after transaction"
         enum transaction_type "initial, monthly, usage, refund, bonus, expiry, adjustment"
+        varchar idempotency_key UK "Prevent double-charging on retry"
         varchar reference_type "Reference type (request, job, subscription, etc.)"
         bigint reference_id "Reference ID"
         text description "Transaction description"
@@ -313,15 +327,18 @@ erDiagram
 2. Calculate cost từ feature (hardcode trong application):
    - Ví dụ: banner generation = 10 credits, video generation = 50 credits
 3. Nếu đủ credits:
+   - Generate unique `idempotency_key` (e.g., `job_{job_id}_{timestamp}`)
    - Deduct credits: `current_credits` -= cost
    - Tạo `credit_transactions` với:
      - `transaction_type` = 'usage'
      - `amount` = -cost (negative)
      - `balance_after` = new balance
+     - `idempotency_key` = unique key (prevents double-charging on retry)
      - `reference_type` = 'request' hoặc 'job'
      - `reference_id` = request_id hoặc job_id
      - `metadata` = {"feature_id": ..., "cost": ..., "feature_name": ...}
 4. Nếu không đủ → Block request, return error
+5. **Idempotency Protection**: Nếu worker retry với same `idempotency_key`, check existing transaction → skip nếu đã tồn tại
 
 ### 4.4. Tier Upgrade/Downgrade
 1. User upgrade tier → System:
@@ -416,3 +433,4 @@ const FEATURE_COSTS = {
 
 **Last Updated**: December 28, 2025
 
+TODO: review 
